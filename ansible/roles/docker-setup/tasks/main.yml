@@ -1,0 +1,12 @@
+---
+# This is a placeholder for the Docker setup role.
+# In a real Ubuntu/Linux environment, this would include apt/yum commands to install Docker.
+# For local Windows development, this is just illustrative.
+
+- name: Example task - Ensure Docker is installed (Placeholder)
+  debug:
+    msg: "Docker installation step would run here."
+
+- name: Start Docker service (Placeholder)
+  debug:
+    msg: "Docker service started."
