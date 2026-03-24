@@ -29,7 +29,7 @@ resource "kind_cluster" "dev_cluster" {
       ]
       extra_port_mappings {
         container_port = 80
-        host_port      = 80
+        host_port      = 8081
         protocol       = "TCP"
       }
     }
