@@ -1,0 +1,68 @@
+---
+# -------------------------------------------------------------
+# 为什么用 Ansible 装基础软件？(Educational Note)
+# -------------------------------------------------------------
+# 在云原生的 "不可变基础设施 (Immutable Infrastructure)" 架构中，
+# 服务器一旦启动就不应该被人类通过 SSH 登录去纯手工敲命令装依赖。
+# 我们用 Ansible 固化所有前置核心组件（Docker, kubectl, kind, helm），
+# 确保在任何一台新装的 Ubuntu 服务器 (或 WSL) 上跑这套脚本，都能得到 100% 环境一致的底座。
+# 这彻底消除了 "在这台机器能跑，那台机器不能跑" 的玄学问题。
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install prerequisite packages for Docker
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+
+- name: Add Docker GPG apt Key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker Repository (assuming Ubuntu focal/jammy)
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu focal stable
+    state: present
+
+- name: Install Docker CE
+  apt:
+    name: docker-ce
+    state: present
+
+- name: Ensure Docker service is running
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Download Kind binary (K8s in Docker)
+  get_url:
+    url: "https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64"
+    dest: /usr/local/bin/kind
+    mode: '0755'
+
+- name: Download Kubectl binary (K8s CLI client)
+  get_url:
+    url: "https://dl.k8s.io/release/v1.29.3/bin/linux/amd64/kubectl"
+    dest: /usr/local/bin/kubectl
+    mode: '0755'
+
+- name: Download Helm installer script (K8s Package Manager)
+  get_url:
+    url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    dest: /tmp/get_helm.sh
+    mode: '0700'
+
+- name: Execute Helm installer script
+  command: /tmp/get_helm.sh
+  args:
+    creates: /usr/local/bin/helm

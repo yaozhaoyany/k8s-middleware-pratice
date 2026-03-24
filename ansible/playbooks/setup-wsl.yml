@@ -1,0 +1,7 @@
+---
+- name: Set up Kubernetes Prerequisites on WSL (Ubuntu)
+  hosts: localhost
+  connection: local
+  become: yes 
+  roles:
+    - role: k8s-base-setup
