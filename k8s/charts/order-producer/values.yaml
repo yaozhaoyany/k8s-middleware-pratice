@@ -1,0 +1,38 @@
+# =============================================================
+# order-producer 微服务配置参数
+# =============================================================
+
+replicaCount: 1
+
+image:
+  repository: order-producer
+  tag: latest
+  # Kind 集群需要设为 Never（镜像已通过 kind load 注入到节点内部）
+  pullPolicy: Never
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+
+# K8s 健康检查探针配置
+probes:
+  liveness:
+    path: /actuator/health
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readiness:
+    path: /actuator/health
+    initialDelaySeconds: 20
+    periodSeconds: 5
+
+# Kafka 连接配置
+kafka:
+  bootstrapServers: orders-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092

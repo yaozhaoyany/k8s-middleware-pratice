@@ -1,0 +1,5 @@
+apiVersion: v2
+name: order-producer
+description: 订单生产者微服务 - 接收 HTTP 请求并将订单事件发送到 Kafka
+version: 0.1.0
+appVersion: "0.0.1-SNAPSHOT"

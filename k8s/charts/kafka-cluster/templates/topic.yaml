@@ -1,0 +1,17 @@
+# =============================================================
+# Kafka Topic 自定义资源 - Helm 模板
+# =============================================================
+# 有了 Strimzi 的 Topic Operator，我们不需要手动进 Kafka 容器敲命令创建 Topic，
+# 只需要提交一个 KafkaTopic CR，Operator 会自动帮我们搞定。
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: {{ .Values.topic.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    strimzi.io/cluster: {{ .Values.kafka.clusterName }}
+spec:
+  partitions: {{ .Values.topic.partitions }}
+  replicas: {{ .Values.topic.replicas }}
+  config:
+    retention.ms: {{ .Values.topic.retentionMs | quote }}

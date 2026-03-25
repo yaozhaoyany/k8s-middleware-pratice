@@ -1,0 +1,31 @@
+# =============================================================
+# Kafka 集群配置参数 (Educational Note)
+# =============================================================
+# 这是 Helm Chart 的 values.yaml —— 所有可调节的"旋钮"都在这里。
+# 使用者可以通过 --set 或自定义 values 文件来覆盖这些默认值。
+
+kafka:
+  clusterName: orders-cluster
+  version: "3.7.0"
+  replicas: 1             # 本地 Kind 资源有限，先用单 Broker（生产至少 3 个）
+  storageType: ephemeral   # 本地用临时存储（生产应该用 persistent-claim）
+  resources:
+    requests:
+      memory: "512Mi"
+    limits:
+      memory: "1Gi"
+
+zookeeper:
+  replicas: 1
+  storageType: ephemeral
+  resources:
+    requests:
+      memory: "256Mi"
+    limits:
+      memory: "512Mi"
+
+topic:
+  name: orders
+  partitions: 3            # 3 个分区，为后续消费者并行消费做准备
+  replicas: 1              # 单 Broker 只能 1 副本
+  retentionMs: "604800000" # 消息保留 7 天
