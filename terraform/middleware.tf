@@ -57,8 +57,45 @@ resource "helm_release" "postgresql" {
   # 核心参数配置 (Educational Note for each parameter)
   # -------------------------------------------------------------
 
-  # 【安全】设置超级管理员密码（生产环境中这应该放在 Vault 或 Sealed Secret 里，绝不能明文写在代码中！）
-  # 但在开发实验环境中，为了方便排障和学习，我们直接写死。
+  # 【安全】设置超级管理员密码
+  # -------------------------------------------------------------
+  # 🔴 当前写法：开发实验环境 (Dev/Lab) —— 明文硬编码，方便调试
+  # 🟢 生产写法：对接 HashiCorp Vault —— 密码从加密金库中动态读取
+  # -------------------------------------------------------------
+  # 【生产环境 Vault 写法 - 学习参考】
+  # 第一步：在 providers.tf 中声明 Vault Provider
+  #   required_providers {
+  #     vault = {
+  #       source  = "hashicorp/vault"
+  #       version = "~> 3.20.0"
+  #     }
+  #   }
+  #
+  # 第二步：配置 Vault Provider 连接地址和认证方式
+  #   provider "vault" {
+  #     address = "https://vault.yourcompany.com:8200"  # Vault 服务器地址
+  #     # 认证方式通常用 Token 或者 Kubernetes Auth (在 K8s 内直接用 ServiceAccount 免密登录 Vault)
+  #     # token = var.vault_token  # 从环境变量或 CI/CD 注入，绝不硬编码
+  #   }
+  #
+  # 第三步：声明一个 data source，从 Vault 里读取密钥
+  #   data "vault_generic_secret" "pg_credentials" {
+  #     path = "secret/data/middleware/postgresql"  # Vault 中存储该密码的路径
+  #   }
+  #
+  # 第四步：在 Helm Release 中引用 Vault 读出来的值（替换下方的 hardcoded value）
+  #   set {
+  #     name  = "auth.postgresPassword"
+  #     value = data.vault_generic_secret.pg_credentials.data["password"]
+  #   }
+  # -------------------------------------------------------------
+  # 【架构要点总结】
+  # Vault 的核心价值在于：密码从未出现在你的 Git 代码仓库中！
+  # 整个流程是：Terraform 运行时 -> 实时向 Vault 发 API 请求 -> Vault 验证身份后吐出密码 -> 注入 Helm
+  # 即使有人拿到了你的 Git 仓库源码，也看不到任何真实密码，只能看到一个 Vault 路径。
+  # -------------------------------------------------------------
+
+  # 当前使用：开发实验环境硬编码（切换到生产时，注释掉这个 set，取消上面 Vault 写法的注释即可）
   set {
     name  = "auth.postgresPassword"
     value = "postgres123"
