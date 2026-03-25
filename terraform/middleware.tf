@@ -46,12 +46,32 @@ resource "helm_release" "postgresql" {
   name       = "postgresql"
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql"
-  version    = "15.5.0"
+  # 【重要教训】Bitnami 从 2025年8月起 修改了镜像分发策略，会激进地从 Docker Hub 删除旧版本镜像。
+  # 如果你锁定了一个老版本的 Chart，它内部引用的 Docker 镜像 Tag 极可能已经被删除了，
+  # 导致 K8s 拉取镜像时报 ImagePullBackOff 错误。
+  # 解决方案：使用最新版 Chart，或者通过 set 显式指定一个你确认存在的镜像 Tag。
+  version    = "16.4.5"
   namespace  = kubernetes_namespace.database.metadata[0].name
 
   # 等待所有 Pod 和 Service 就绪后才算部署成功
   wait    = true
-  timeout = 300
+  timeout = 600
+
+  # 【镜像锁定】显式指定使用官方 PostgreSQL 镜像，绕过 Bitnami 镜像删除策略
+  # TODO: 这是一个妥协方案，使用官方镜像替代 Bitnami 镜像。Bitnami 镜像提供了更多安全加固，
+  # 但在学习环境中官方镜像完全满足需求。
+  set {
+    name  = "image.registry"
+    value = "docker.io"
+  }
+  set {
+    name  = "image.repository"
+    value = "bitnami/postgresql"
+  }
+  set {
+    name  = "image.tag"
+    value = "17"
+  }
 
   # -------------------------------------------------------------
   # 核心参数配置 (Educational Note for each parameter)
@@ -168,11 +188,25 @@ resource "helm_release" "redis" {
   name       = "redis"
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "redis"
-  version    = "19.5.0"
+  version    = "20.6.3"
   namespace  = kubernetes_namespace.database.metadata[0].name
 
   wait    = true
-  timeout = 300
+  timeout = 600
+
+  # 【镜像锁定】同理，显式指定可用的 Redis 镜像版本
+  set {
+    name  = "image.registry"
+    value = "docker.io"
+  }
+  set {
+    name  = "image.repository"
+    value = "bitnami/redis"
+  }
+  set {
+    name  = "image.tag"
+    value = "7.4"
+  }
 
   # 【安全】Redis 访问密码
   set {
