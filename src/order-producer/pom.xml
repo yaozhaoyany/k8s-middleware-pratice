@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Spring Boot 父 POM：自动管理所有 Spring 依赖的版本兼容性 -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.4</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.middleware.practice</groupId>
+    <artifactId>order-producer</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>order-producer</name>
+    <description>订单生产者微服务 - 负责接收 HTTP 请求并将订单事件发送到 Kafka</description>
+
+    <properties>
+        <java.version>17</java.version>
+    </properties>
+
+    <dependencies>
+        <!-- Spring Boot Web：提供 REST API 能力 (内嵌 Tomcat + Spring MVC) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Spring Kafka：Spring 对 Apache Kafka 客户端的封装
+             为什么不直接用 kafka-clients？
+             因为 Spring Kafka 提供了声明式的 KafkaTemplate、@KafkaListener 注解、
+             自动序列化/反序列化配置，让你像写 JdbcTemplate 一样优雅地操作 Kafka -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <!-- Jackson：Java 对象与 JSON 的互相转换（序列化/反序列化）
+             Kafka 传输的消息体是 byte[]，我们需要把 OrderEvent 对象序列化成 JSON 字符串再发送 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <!-- Lombok：自动生成 getter/setter/toString/构造器等样板代码
+             在学习阶段能让你专注于业务逻辑而不是手写 50 行无聊的 POJO 样板 -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Spring Boot Actuator：提供 /actuator/health 等生产级运维端点
+             K8s 的 liveness/readiness 探针需要通过这个端点来判断你的微服务是否活着 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- 测试依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Spring Boot Maven 插件：把整个项目打包成一个可独立运行的 Fat JAR
+                 这个 Fat JAR 里包含了内嵌的 Tomcat 和所有依赖，直接 java -jar 就能跑 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

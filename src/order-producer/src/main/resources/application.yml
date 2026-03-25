@@ -1,0 +1,41 @@
+# =============================================================
+# Spring Boot 应用配置 (Educational Note)
+# =============================================================
+# application.yml 是 Spring Boot 的核心配置文件。
+# 它替代了传统 Java EE 时代几十个 XML 配置文件的角色。
+# Spring Boot 启动时会自动扫描 classpath 下的 application.yml，
+# 并把配置注入到对应的 Bean 中（通过 @ConfigurationProperties 或 @Value 注解）。
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: order-producer
+
+  # Kafka 连接配置
+  kafka:
+    # Bootstrap Servers：Kafka Broker 的地址
+    # 在 K8s 内部，Strimzi 会自动创建一个 Service 供应用连接。
+    # 格式为: <cluster-name>-kafka-bootstrap.<namespace>.svc.cluster.local:<port>
+    # 这里的 "orders-cluster" 是我们在 kafka.tf 里声明的 Kafka CR 的名字，
+    # "kafka" 是它所在的 Namespace，9092 是我们配置的 plain listener 端口。
+    bootstrap-servers: orders-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092
+
+    producer:
+      # Key 序列化器：把消息的 Key（通常是订单ID）序列化成字符串
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # Value 序列化器：把消息体（OrderEvent JSON）序列化成字符串
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # Acks 策略 (Educational Note)：
+      # "all" 表示 Producer 发消息后，必须等待所有 ISR (In-Sync Replica) 确认收到，
+      # 才认为这条消息发送成功。这是最高可靠性的配置。
+      # 在我们的单 Broker 环境下，"all" 等于 "1"（因为只有一个副本）。
+      acks: all
+
+# Actuator 端点配置（暴露健康检查，供 K8s 探针使用）
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
