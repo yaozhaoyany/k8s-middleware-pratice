@@ -44,6 +44,32 @@
     state: started
     enabled: yes
 
+# -------------------------------------------------------------
+# 为什么要单独处理 Docker 权限？(Educational Note)
+# -------------------------------------------------------------
+# Docker 的核心通信管道是一个 Unix Socket 文件: /var/run/docker.sock
+# 默认情况下，这个文件只允许 root 用户和 docker 用户组的成员读写。
+# 如果当前用户（比如你的 tony-yao1）不在 docker 组里，
+# 那么 Terraform 的 Kind Provider 在尝试连接 Docker 创建集群容器时，
+# 就会被操作系统无情地踢出来，报出经典的 "permission denied" 错误。
+# 下面这两步确保了"一键部署"在任何新机器上都不会卡在权限问题上。
+
+- name: Ensure docker group exists
+  group:
+    name: docker
+    state: present
+
+- name: Add current user to docker group (避免每次都要 sudo)
+  user:
+    name: "{{ ansible_facts['user_id'] }}"
+    groups: docker
+    append: yes
+
+- name: Fix docker socket permissions (仅限开发实验室使用，生产环境严禁！)
+  file:
+    path: /var/run/docker.sock
+    mode: '0666'
+
 - name: Download Kind binary (K8s in Docker)
   get_url:
     url: "https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64"
