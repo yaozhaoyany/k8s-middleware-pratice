@@ -104,11 +104,9 @@ resource "helm_release" "postgresql" {
     value = "postgres123"
   }
 
-  # 【业务数据库】自动创建一个名为 orders 的业务数据库，后续我们的订单微服务会连接它
-  set {
-    name  = "auth.database"
-    value = "orders"
-  }
+  # 【业务数据库】原有的 auth.database = "orders" 硬编码已被移除
+  # 根据 DDD 原则与云原生解耦最佳实践，业务数据库 ("orders") 将由
+  # order-consumer 微服务部署时的 initContainer 动态创建，而不是在基础设施层写死。
 
   # 【架构选择】开启主从复制 (Primary-Standby Replication)
   # 这会让 Helm Chart 自动部署 1 个主节点 + N 个只读从节点

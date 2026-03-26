@@ -5,10 +5,10 @@
 
 ## Terraform (基础设施层)
 
-- [ ] **`auth.database = "orders"` 跨层越界问题**
+- [x] **`auth.database = "orders"` 跨层越界问题** (Day 4: 已通过 order-consumer 的 initContainer 解决)
   - 文件: `terraform/middleware.tf`
   - 问题: 业务数据库名不应由 Terraform 基础设施层创建，违反 DDD 分层原则
-  - 正确做法: 删除此 `set`，在 Java 微服务中集成 Flyway/Liquibase，由应用启动时自行迁移建库建表
+  - 正确做法: 已删除该 `set`，由 `order-consumer` Helm Chart 提供 `initContainers` 自动执行 `CREATE DATABASE`，然后由 Flyway 建表。
   - 优先级: Day 4 编写 `order-consumer` 时一并修正
 
 - [ ] **密码明文硬编码**

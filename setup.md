@@ -50,6 +50,20 @@ cd ../..
 helm install order-producer k8s/charts/order-producer -n midware
 ```
 
+**Order Consumer (Day 4):**
+```bash
+# Build the image from the service directory
+cd src/order-consumer
+mvn clean package -DskipTests
+docker build -t order-consumer:latest .
+kind load docker-image order-consumer:latest --name middleware-practice-cluster
+
+# Go back to project root to deploy via Helm
+cd ../..
+# 部署 consumer，期间它会自动运行 initContainer 创建业务数据库
+helm install order-consumer k8s/charts/order-consumer -n midware
+```
+
 ### 5. Teardown / Nuke Command
 ```bash
 # Start from project root

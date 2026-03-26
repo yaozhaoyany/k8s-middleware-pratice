@@ -1,0 +1,68 @@
+server:
+  port: 9082
+
+spring:
+  application:
+    name: order-consumer
+
+  # =============================================================
+  # PostgreSQL 数据库配置
+  # =============================================================
+  datasource:
+    # JDBC URL 优先从环境变量 SPRING_DATASOURCE_URL 读取 (由 Helm 传入)
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/orders}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres123}
+    driver-class-name: org.postgresql.Driver
+
+  # =============================================================
+  # Spring Data JPA 配置
+  # =============================================================
+  jpa:
+    # 打印最终执行的 SQL 语句 (方便本地调试)
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        # 因为我们使用了 Flyway 来管理表结构的创建，所以关闭 Hibernate 的自动建表功能
+        # 这是一个极佳的生产级实践，防止 Hibernate 盲目去修改生产库的表
+        hbm2ddl:
+          auto: validate
+
+  # =============================================================
+  # Flyway 数据库迁移配置
+  # =============================================================
+  flyway:
+    enabled: true
+    # 首次执行时，如果数据库里有其他表，也允许创建 flyway_schema_history 表
+    baseline-on-migrate: true
+    # 指定 Flyway 扫描迁移脚本的路径（默认也是这个）
+    locations: classpath:db/migration
+
+  # =============================================================
+  # Kafka Consumer 消费者配置
+  # =============================================================
+  kafka:
+    # 优先使用环境变量 SPRING_KAFKA_BOOTSTRAP_SERVERS
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      # 在 Kafka 中，消费者通常属于一个消费组 (Consumer Group)
+      # 同一个 Group 中的不同服务实例会均摊 Topic 中的 Partitions (实现高可用/负载均衡)
+      group-id: order-processing-group
+      # earliest: 如果没有找到偏移量（比如服务第一次启动），从最早的消息开始读 (处理积压)
+      # latest: 从最新的消息开始读
+      auto-offset-reset: earliest
+      # 反序列化器：我们需要把 Kafka 里的 byte[] 转换回 Java 对象
+      # 这里我们在代码逻辑里用 Jackson 做，所以直接按照 String 来读取更安全、灵活
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+# 暴露出健康检查端点，方便 K8s 配置探针
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always

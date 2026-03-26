@@ -1,0 +1,6 @@
+apiVersion: v2
+name: order-consumer
+description: A Helm chart for deploying the order consumer microservice
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
