@@ -7,7 +7,7 @@
 # 并把配置注入到对应的 Bean 中（通过 @ConfigurationProperties 或 @Value 注解）。
 
 server:
-  port: 8080
+  port: 9081
 
 spring:
   application:

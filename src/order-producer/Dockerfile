@@ -27,8 +27,8 @@ WORKDIR /app
 # 从第一阶段的构建产物中，只拷贝最终的 Fat JAR
 COPY --from=builder /app/target/*.jar app.jar
 
-# 暴露 Spring Boot 默认端口
-EXPOSE 8080
+# 暴露 Spring Boot 端口
+EXPOSE 9081
 
 # 启动命令
 # -XX:+UseContainerSupport：让 JVM 正确识别容器的内存限制（而不是读取宿主机的物理内存）
