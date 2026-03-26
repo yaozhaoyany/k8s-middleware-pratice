@@ -107,3 +107,14 @@
   apt:
     name: terraform
     state: present
+
+- name: Install Java JDK 17 (Required for Spring Boot / Maven)
+  apt:
+    name: openjdk-17-jdk
+    state: present
+
+- name: Install Maven (Required for building Java microservices)
+  apt:
+    name: maven
+    state: present
+
