@@ -11,7 +11,7 @@ This document serves as the single source of truth for completely rebuilding the
 Run the Ansible playbook once per new WSL environment to install Docker, Kubectl, Kind, Helm, and Terraform:
 ```bash
 cd ansible
-ansible-playbook -i inventory k8s-setup.yml -K
+ansible-playbook -i inventories/local.ini playbooks/setup-wsl.yml -K
 ```
 
 ### 2. Infrastructure Foundation (Terraform)
