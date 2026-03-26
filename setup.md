@@ -17,14 +17,17 @@ ansible-playbook -i inventories/local.ini playbooks/setup-wsl.yml -K
 ### 2. Infrastructure Foundation (Terraform)
 Provisions the Kind cluster, base operators (Strimzi), and namespaces (`database`, `kafka`, `midware`).
 ```bash
+# Start from project root
 cd terraform
 terraform init -upgrade
 terraform apply -auto-approve
+cd ..
 ```
 
 ### 3. Middleware Services (Helm)
 Deploy Stateful services via Helm.
 ```bash
+# Ensure you are at the project root
 # 3.1. Kafka Cluster
 # Wait for Strimzi Operator to be running first
 kubectl get pods -n kafka -w
@@ -36,15 +39,21 @@ Deploy stateless Java microservices.
 
 **Order Producer:**
 ```bash
+# Build the image from the service directory
 cd src/order-producer
 mvn clean package -DskipTests
 docker build -t order-producer:latest .
 kind load docker-image order-producer:latest --name middleware-practice-cluster
+
+# Go back to project root to deploy via Helm
+cd ../..
 helm install order-producer k8s/charts/order-producer -n midware
 ```
 
 ### 5. Teardown / Nuke Command
 ```bash
+# Start from project root
 cd terraform
 terraform destroy -auto-approve
+cd ..
 ```
