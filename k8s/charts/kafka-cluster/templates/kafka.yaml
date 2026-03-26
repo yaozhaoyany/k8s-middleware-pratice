@@ -4,7 +4,7 @@
 # 这个模板会被 Helm 渲染成一个 Strimzi Kafka CR。
 # {{ .Values.xxx }} 语法从 values.yaml 里动态读取参数。
 # 这就是 Helm 的核心魔法：同一套模板 + 不同的 values = 不同环境的部署。
-apiVersion: kafka.strimzi.io/v1beta2
+apiVersion: kafka.strimzi.io/v1
 kind: Kafka
 metadata:
   name: {{ .Values.kafka.clusterName }}

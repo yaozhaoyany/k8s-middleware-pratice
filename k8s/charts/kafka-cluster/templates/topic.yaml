@@ -3,7 +3,7 @@
 # =============================================================
 # 有了 Strimzi 的 Topic Operator，我们不需要手动进 Kafka 容器敲命令创建 Topic，
 # 只需要提交一个 KafkaTopic CR，Operator 会自动帮我们搞定。
-apiVersion: kafka.strimzi.io/v1beta2
+apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
   name: {{ .Values.topic.name }}
