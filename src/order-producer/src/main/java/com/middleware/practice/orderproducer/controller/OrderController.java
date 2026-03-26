@@ -8,10 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.Map;
-import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 订单 REST API 控制器 (Educational Note)
@@ -45,24 +43,13 @@ public class OrderController {
      */
     @PostMapping
     public ResponseEntity<Map<String, Object>> createOrder(@RequestBody OrderEvent orderRequest) {
-        // 补全服务端生成的字段（客户端不应该传这些）
-        OrderEvent event = OrderEvent.builder()
-                .orderId("ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
-                .customerName(orderRequest.getCustomerName())
-                .productName(orderRequest.getProductName())
-                .amount(orderRequest.getAmount())
-                .status("CREATED")
-                .createdAt(Instant.now())
-                .build();
-
-        producerService.sendOrderEvent(event);
+        // 控制器只负责接收请求，把组装数据的脏活累活全交给 Service 层
+        producerService.createAndSendOrder(orderRequest);
 
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)  // 202 Accepted：表示"已接收，异步处理中"
                 .body(Map.of(
-                        "message", "Order event submitted to Kafka",
-                        "orderId", event.getOrderId(),
-                        "status", event.getStatus()
+                        "message", "Order event submitted to Kafka processing pipe"
                 ));
     }
 
@@ -71,28 +58,12 @@ public class OrderController {
      */
     @PostMapping("/mock")
     public ResponseEntity<Map<String, Object>> createMockOrder() {
-        String[] products = {"iPhone 15 Pro", "MacBook Air M3", "AirPods Pro 2", "iPad Pro 12.9"};
-        String[] customers = {"Tony Yao", "Alice Chen", "Bob Zhang", "Charlie Li"};
-
-        OrderEvent event = OrderEvent.builder()
-                .orderId("ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
-                .customerName(customers[(int) (Math.random() * customers.length)])
-                .productName(products[(int) (Math.random() * products.length)])
-                .amount(BigDecimal.valueOf(Math.random() * 10000 + 100).setScale(2, BigDecimal.ROUND_HALF_UP))
-                .status("CREATED")
-                .createdAt(Instant.now())
-                .build();
-
-        producerService.sendOrderEvent(event);
+        producerService.createAndSendMockOrder();
 
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
                 .body(Map.of(
-                        "message", "Mock order event submitted to Kafka",
-                        "orderId", event.getOrderId(),
-                        "customerName", event.getCustomerName(),
-                        "productName", event.getProductName(),
-                        "amount", event.getAmount()
+                        "message", "Mock order event submitted to Kafka processing pipe"
                 ));
     }
 }

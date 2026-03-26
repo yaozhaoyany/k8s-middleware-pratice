@@ -9,6 +9,9 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -36,12 +39,45 @@ public class OrderProducerService {
     private final ObjectMapper objectMapper;
 
     /**
-     * 发送订单事件到 Kafka
-     *
-     * @param event 订单事件对象
-     * @return 发送结果的异步 Future（包含分区号和偏移量信息）
+     * 处理客户端下单请求并发送到 Kafka
+     * 在这里封装所有的业务领域逻辑（生成ID、打时间戳、设初始状态）
      */
-    public CompletableFuture<SendResult<String, String>> sendOrderEvent(OrderEvent event) {
+    public CompletableFuture<SendResult<String, String>> createAndSendOrder(OrderEvent request) {
+        OrderEvent event = OrderEvent.builder()
+                .orderId("ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                .customerName(request.getCustomerName())
+                .productName(request.getProductName())
+                .amount(request.getAmount())
+                .status("CREATED")
+                .createdAt(Instant.now())
+                .build();
+
+        return sendOrderEvent(event);
+    }
+
+    /**
+     * 生成模拟订单并发送到 Kafka (用于压测)
+     */
+    public CompletableFuture<SendResult<String, String>> createAndSendMockOrder() {
+        String[] products = {"iPhone 15 Pro", "MacBook Air M3", "AirPods Pro 2", "iPad Pro 12.9"};
+        String[] customers = {"Tony Yao", "Alice Chen", "Bob Zhang", "Charlie Li"};
+
+        OrderEvent event = OrderEvent.builder()
+                .orderId("ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                .customerName(customers[(int) (Math.random() * customers.length)])
+                .productName(products[(int) (Math.random() * products.length)])
+                .amount(BigDecimal.valueOf(Math.random() * 10000 + 100).setScale(2, BigDecimal.ROUND_HALF_UP))
+                .status("CREATED")
+                .createdAt(Instant.now())
+                .build();
+
+        return sendOrderEvent(event);
+    }
+
+    /**
+     * 底层发送逻辑 (私有方法)
+     */
+    private CompletableFuture<SendResult<String, String>> sendOrderEvent(OrderEvent event) {
         try {
             // 将 Java 对象序列化为 JSON 字符串
             String payload = objectMapper.writeValueAsString(event);
