@@ -1,0 +1,32 @@
+# =============================================================
+# KafkaNodePool 自定义资源 - KRaft 架构 (Educational Note)
+# =============================================================
+# 从 Kafka 4.x 和 Strimzi v1 API 开始，Kafka 抛弃了臃肿的 ZooKeeper，
+# 全面转向 KRaft（Kafka Raft）架构。
+#
+# 在新架构中，Kafka 节点分为两种角色：
+# 1. Controller：负责集群管理和元数据（过去 ZooKeeper 的活）
+# 2. Broker：负责实际的数据存储和传输
+#
+# Strimzi 强制要求使用 KafkaNodePool 来管理节点。
+# 在我们这个本地开发环境中，我们使用一个结合了两种角色的单节点 NodePool，
+# 这样能最大程度节省内存和 CPU。
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: {{ .Values.nodePool.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    strimzi.io/cluster: {{ .Values.kafka.clusterName }}
+spec:
+  replicas: {{ .Values.nodePool.replicas }}
+  roles:
+    - controller
+    - broker
+  storage:
+    type: {{ .Values.nodePool.storageType }}
+  resources:
+    requests:
+      memory: {{ .Values.nodePool.resources.requests.memory }}
+    limits:
+      memory: {{ .Values.nodePool.resources.limits.memory }}

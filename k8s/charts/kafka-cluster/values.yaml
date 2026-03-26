@@ -6,23 +6,17 @@
 
 kafka:
   clusterName: orders-cluster
-  version: "3.7.0"
-  replicas: 1             # 本地 Kind 资源有限，先用单 Broker（生产至少 3 个）
-  storageType: ephemeral   # 本地用临时存储（生产应该用 persistent-claim）
+  version: "4.2.0"
+
+nodePool:
+  name: dual-role
+  replicas: 1             # 本地 Kind 资源有限，先用单节点既做 Controller 又做 Broker
+  storageType: ephemeral  # 本地用临时存储（生产应该用 persistent-claim）
   resources:
     requests:
       memory: "512Mi"
     limits:
       memory: "1Gi"
-
-zookeeper:
-  replicas: 1
-  storageType: ephemeral
-  resources:
-    requests:
-      memory: "256Mi"
-    limits:
-      memory: "512Mi"
 
 topic:
   name: orders
