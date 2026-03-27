@@ -113,6 +113,10 @@
                         <image>
                             <!-- 动态注入 Maven 强控制的版本号 + 时间戳 -->
                             <name>${project.artifactId}:${docker.image.tag}</name>
+                            <tags>
+                                <!-- 自动给每次打出的镜像都额外附加上 latest 标签 -->
+                                <tag>latest</tag>
+                            </tags>
                             <build>
                                 <!-- 复用你写好的原生 Dockerfile -->
                                 <contextDir>${project.basedir}</contextDir>

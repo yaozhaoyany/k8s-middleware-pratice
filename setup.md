@@ -58,7 +58,7 @@ helm install order-producer k8s/charts/order-producer -n midware
 
 **Order Consumer (Day 4):**
 ```bash
-# Build the image from the service directory
+# Build the image from the service directoryls -l
 cd src/order-consumer
 mvn clean package -DskipTests
 docker build -t order-consumer:latest .
