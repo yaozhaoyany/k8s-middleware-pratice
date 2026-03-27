@@ -95,11 +95,11 @@
                     <images>
                         <image>
                             <name>${project.artifactId}:${docker.image.tag}</name>
-                            <tags>
-                                <tag>latest</tag>
-                            </tags>
                             <build>
                                 <contextDir>${project.basedir}</contextDir>
+                                <tags>
+                                    <tag>latest</tag>
+                                </tags>
                             </build>
                         </image>
                     </images>
