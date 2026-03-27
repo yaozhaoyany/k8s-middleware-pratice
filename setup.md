@@ -28,10 +28,16 @@ cd ..
 Deploy Stateful services via Helm.
 ```bash
 # Ensure you are at the project root
+
 # 3.1. Kafka Cluster
 # Wait for Strimzi Operator to be running first
 kubectl get pods -n kafka -w
 helm install kafka-cluster k8s/charts/kafka-cluster -n kafka
+
+# 3.2. Elasticsearch Cluster (Day 5)
+# Operator 已经受 Terraform 纳管在 elastic-system 中自动拉起
+# 等待 operator 就绪后部署无需密码的单节点集群
+helm install elastic-cluster k8s/charts/elastic-cluster -n database
 ```
 
 ### 4. Business Microservices (Docker + Helm)

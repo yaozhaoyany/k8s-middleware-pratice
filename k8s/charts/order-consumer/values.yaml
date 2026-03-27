@@ -35,7 +35,7 @@ probes:
 
 # Kafka 连接配置
 kafka:
-  bootstrapServers: kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092
+  bootstrapServers: orders-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092
 
 # PostgreSQL 连接配置
 postgres:

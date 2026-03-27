@@ -1,0 +1,25 @@
+# =============================================================
+# elastic-cluster 微服务配置参数
+# =============================================================
+
+elasticVersion: "8.12.2"
+
+elasticsearch:
+  nodeCount: 1
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: "500m"
+    limits:
+      memory: 1.5Gi
+      cpu: "1"
+
+kibana:
+  count: 1
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: "250m"
+    limits:
+      memory: 1Gi
+      cpu: "500m"

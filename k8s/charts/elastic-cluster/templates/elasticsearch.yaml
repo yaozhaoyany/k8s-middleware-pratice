@@ -1,0 +1,32 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: {{ .Release.Name }}-es
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  version: {{ .Values.elasticVersion }}
+  # 彻底关闭 TLS (HTTPS)，方便内网 Java 程序和开发者直接 HTTP 调试
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+  nodeSets:
+  - name: default
+    count: {{ .Values.elasticsearch.nodeCount }}
+    config:
+      node.store.allow_mmap: false
+      # 关闭安全认证框架 (X-pack Security)，实现全免密裸奔登录
+      xpack.security.enabled: false
+      xpack.security.http.ssl.enabled: false
+    podTemplate:
+      spec:
+        containers:
+        - name: elasticsearch
+          resources:
+            requests:
+              memory: {{ .Values.elasticsearch.resources.requests.memory }}
+              cpu: {{ .Values.elasticsearch.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.elasticsearch.resources.limits.memory }}
+              cpu: {{ .Values.elasticsearch.resources.limits.cpu }}

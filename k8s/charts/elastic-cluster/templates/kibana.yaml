@@ -1,0 +1,27 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: {{ .Release.Name }}-kb
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  version: {{ .Values.elasticVersion }}
+  # 关闭 Kibana 本身的 HTTPS 界面
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+  count: {{ .Values.kibana.count }}
+  elasticsearchRef:
+    name: {{ .Release.Name }}-es
+  podTemplate:
+    spec:
+      containers:
+      - name: kibana
+        resources:
+          requests:
+            memory: {{ .Values.kibana.resources.requests.memory }}
+            cpu: {{ .Values.kibana.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.kibana.resources.limits.memory }}
+            cpu: {{ .Values.kibana.resources.limits.cpu }}

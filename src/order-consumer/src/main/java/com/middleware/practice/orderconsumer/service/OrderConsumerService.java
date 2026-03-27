@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.middleware.practice.orderconsumer.entity.OrderEntity;
 import com.middleware.practice.orderconsumer.model.OrderEvent;
+import com.middleware.practice.orderconsumer.document.OrderDocument;
 import com.middleware.practice.orderconsumer.repository.OrderRepository;
+import com.middleware.practice.orderconsumer.repository.OrderSearchRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderConsumerService {
 
     private final OrderRepository orderRepository;
+    private final OrderSearchRepository orderSearchRepository;
     
     // 初始化 Jackson JSON 解析器
     private final ObjectMapper objectMapper = new ObjectMapper()
@@ -65,6 +68,16 @@ public class OrderConsumerService {
             // 4. 落库
             orderRepository.save(entity);
             log.info("💾 订单数据持久化至 PostgreSQL 新增成功！");
+
+            // 5. 将同样的数据映射成文档并双写至 Elasticsearch (查询加速专用)
+            OrderDocument document = OrderDocument.builder()
+                    .orderId(event.getOrderId())
+                    .customerName(event.getCustomerName())
+                    .productName(event.getProductName())
+                    .amount(event.getAmount())
+                    .build();
+            orderSearchRepository.save(document);
+            log.info("🔍 订单数据同时双写至 Elasticsearch 成功！");
 
         } catch (JsonProcessingException e) {
             log.error("❌ 消息格式解析失败 (毒性消息), body: {}", message, e);
