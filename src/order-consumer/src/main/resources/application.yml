@@ -34,7 +34,9 @@ spring:
   # =============================================================
   elasticsearch:
     # 纯 HTTP 免密通信 (Day 5 改进)
-    uris: http://elastic-cluster-es-http.database.svc.cluster.local:9200
+    # 注意 ECK 生成的 service 具有名字后缀叠加的特性，由于我们的 CRD 叫 elastic-cluster-es
+    # 所以它的 service 固定名为 elastic-cluster-es-es-http
+    uris: http://elastic-cluster-es-es-http.database.svc.cluster.local:9200
 
   # =============================================================
   # Flyway 数据库迁移配置

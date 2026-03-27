@@ -20,6 +20,8 @@
 
     <properties>
         <java.version>17</java.version>
+        <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
+        <docker.image.tag>${project.version}-${maven.build.timestamp}</docker.image.tag>
     </properties>
 
     <dependencies>
@@ -83,6 +85,31 @@
                         </exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.44.0</version>
+                <configuration>
+                    <images>
+                        <image>
+                            <name>${project.artifactId}:${docker.image.tag}</name>
+                            <build>
+                                <contextDir>${project.basedir}</contextDir>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>build-docker-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

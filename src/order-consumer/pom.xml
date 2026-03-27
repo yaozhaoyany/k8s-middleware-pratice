@@ -19,6 +19,9 @@
 
     <properties>
         <java.version>17</java.version>
+        <!-- 定义 Maven 时间戳格式，供 Docker 打标签使用 -->
+        <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
+        <docker.image.tag>${project.version}-${maven.build.timestamp}</docker.image.tag>
     </properties>
 
     <dependencies>
@@ -98,6 +101,35 @@
                         </exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+
+            <!-- 在 Maven 层面彻底接管 Docker 构建与 Tag 注入 -->
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.44.0</version>
+                <configuration>
+                    <images>
+                        <image>
+                            <!-- 动态注入 Maven 强控制的版本号 + 时间戳 -->
+                            <name>${project.artifactId}:${docker.image.tag}</name>
+                            <build>
+                                <!-- 复用你写好的原生 Dockerfile -->
+                                <contextDir>${project.basedir}</contextDir>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>build-docker-image</id>
+                        <!-- 绑定到 Maven 的 package 阶段 -->
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
