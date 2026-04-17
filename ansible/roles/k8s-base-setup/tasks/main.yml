@@ -21,10 +21,24 @@
 # 然后在需要重试的 task 里用 {{ network_retries }} 引用。
 # 只需改一处，所有 task 的重试策略就统一更新了。
 
+# -------------------------------------------------------------
+# 为什么要换 APT 源？(Educational Note)
+# -------------------------------------------------------------
+# Ubuntu 默认使用 archive.ubuntu.com，服务器在海外，
+# 国内直连下载速度极慢（几 KB/s），安装 Maven、JDK 等大包时尤其痛苦。
+# 换成清华 TUNA 镜像后，走国内 CDN，速度可以达到几十 MB/s。
+
+- name: Switch apt sources to TUNA mirror (国内加速)
+  replace:
+    path: /etc/apt/sources.list
+    regexp: 'http://archive\.ubuntu\.com/ubuntu'
+    replace: 'https://mirrors.tuna.tsinghua.edu.cn/ubuntu'
+  register: _apt_mirror
+
 - name: Update apt cache
   apt:
     update_cache: yes
-    cache_valid_time: 3600
+    cache_valid_time: "{{ 0 if _apt_mirror.changed else 3600 }}"
   register: _result
   until: _result is success
   retries: "{{ network_retries }}"
