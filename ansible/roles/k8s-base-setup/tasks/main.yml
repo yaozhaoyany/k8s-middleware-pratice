@@ -15,16 +15,20 @@
 # SSL 握手超时、DNS 解析抖动等问题经常发生。
 # Ansible 的 retries + delay + until 机制可以自动重试失败的任务，
 # 避免因为一次偶发网络波动而导致整个部署脚本失败。
-# retries: 最多重试次数 | delay: 每次重试间隔秒数 | until: 成功条件
+#
+# 为了避免每个 task 都重复写 retries/delay/until，我们把重试参数
+# 集中定义在 defaults/main.yml 中（network_retries, network_delay, download_timeout），
+# 然后在需要重试的 task 里用 {{ network_retries }} 引用。
+# 只需改一处，所有 task 的重试策略就统一更新了。
 
 - name: Update apt cache
   apt:
     update_cache: yes
     cache_valid_time: 3600
-  register: _apt_update
-  until: _apt_update is success
-  retries: 5
-  delay: 10
+  register: _result
+  until: _result is success
+  retries: "{{ network_retries }}"
+  delay: "{{ network_delay }}"
 
 - name: Install prerequisite packages for Docker
   apt:
@@ -35,19 +39,19 @@
       - gnupg
       - lsb-release
     state: present
-  register: _apt_prereq
-  until: _apt_prereq is success
-  retries: 5
-  delay: 10
+  register: _result
+  until: _result is success
+  retries: "{{ network_retries }}"
+  delay: "{{ network_delay }}"
 
 - name: Add Docker GPG apt Key
   apt_key:
     url: https://download.docker.com/linux/ubuntu/gpg
     state: present
-  register: _docker_gpg
-  until: _docker_gpg is success
-  retries: 5
-  delay: 10
+  register: _result
+  until: _result is success
+  retries: "{{ network_retries }}"
+  delay: "{{ network_delay }}"
 
 - name: Add Docker Repository (assuming Ubuntu focal/jammy)
   apt_repository:
@@ -58,10 +62,10 @@
   apt:
     name: docker-ce
     state: present
-  register: _docker_install
-  until: _docker_install is success
-  retries: 5
-  delay: 10
+  register: _result
+  until: _result is success
+  retries: "{{ network_retries }}"
+  delay: "{{ network_delay }}"
 
 - name: Ensure Docker service is running
   service:
@@ -100,33 +104,33 @@
     url: "https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64"
     dest: /usr/local/bin/kind
     mode: '0755'
-    timeout: 60
-  register: _kind_download
-  until: _kind_download is success
-  retries: 5
-  delay: 10
+    timeout: "{{ download_timeout }}"
+  register: _result
+  until: _result is success
+  retries: "{{ network_retries }}"
+  delay: "{{ network_delay }}"
 
 - name: Download Kubectl binary (K8s CLI client)
   get_url:
     url: "https://dl.k8s.io/release/v1.29.3/bin/linux/amd64/kubectl"
     dest: /usr/local/bin/kubectl
     mode: '0755'
-    timeout: 60
-  register: _kubectl_download
-  until: _kubectl_download is success
-  retries: 5
-  delay: 10
+    timeout: "{{ download_timeout }}"
+  register: _result
+  until: _result is success
+  retries: "{{ network_retries }}"
+  delay: "{{ network_delay }}"
 
 - name: Download Helm installer script (K8s Package Manager)
   get_url:
     url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
     dest: /tmp/get_helm.sh
     mode: '0700'
-    timeout: 60
-  register: _helm_download
-  until: _helm_download is success
-  retries: 5
-  delay: 10
+    timeout: "{{ download_timeout }}"
+  register: _result
+  until: _result is success
+  retries: "{{ network_retries }}"
+  delay: "{{ network_delay }}"
 
 - name: Execute Helm installer script
   command: /tmp/get_helm.sh
@@ -137,10 +141,10 @@
   apt_key:
     url: https://apt.releases.hashicorp.com/gpg
     state: present
-  register: _hashicorp_gpg
-  until: _hashicorp_gpg is success
-  retries: 5
-  delay: 10
+  register: _result
+  until: _result is success
+  retries: "{{ network_retries }}"
+  delay: "{{ network_delay }}"
 
 - name: Add HashiCorp Repository
   apt_repository:
@@ -151,26 +155,25 @@
   apt:
     name: terraform
     state: present
-  register: _terraform_install
-  until: _terraform_install is success
-  retries: 5
-  delay: 10
+  register: _result
+  until: _result is success
+  retries: "{{ network_retries }}"
+  delay: "{{ network_delay }}"
 
 - name: Install Java JDK 17 (Required for Spring Boot / Maven)
   apt:
     name: openjdk-17-jdk
     state: present
-  register: _java_install
-  until: _java_install is success
-  retries: 5
-  delay: 10
+  register: _result
+  until: _result is success
+  retries: "{{ network_retries }}"
+  delay: "{{ network_delay }}"
 
 - name: Install Maven (Required for building Java microservices)
   apt:
     name: maven
     state: present
-  register: _maven_install
-  until: _maven_install is success
-  retries: 5
-  delay: 10
-
+  register: _result
+  until: _result is success
+  retries: "{{ network_retries }}"
+  delay: "{{ network_delay }}"

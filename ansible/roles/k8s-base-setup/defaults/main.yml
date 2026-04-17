@@ -1,0 +1,12 @@
+---
+# -------------------------------------------------------------
+# 网络重试参数 (Centralized Network Retry Config)
+# -------------------------------------------------------------
+# 集中定义所有网络相关 task 的重试策略，避免在每个 task 里硬编码。
+# 如果需要调整重试策略，只需修改这里，所有引用的 task 自动生效。
+# 也可以在 playbook 层或命令行用 -e 覆盖这些值，例如:
+#   ansible-playbook setup-wsl.yml -e "network_retries=10 network_delay=15"
+
+network_retries: 10        # 最多重试次数
+network_delay: 5         # 每次重试间隔秒数
+download_timeout: 60      # get_url 下载超时秒数 (默认只有10秒，对大文件不够)
