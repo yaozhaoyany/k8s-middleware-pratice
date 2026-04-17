@@ -7,6 +7,35 @@ This document serves as the single source of truth for completely rebuilding the
 
 ## 🏗️ Current State: End of Day 3 (Kafka + Order Producer)
 
+### 0. Fresh Machine Bootstrap (First Time Only)
+On a brand-new Ubuntu / WSL instance, Ansible is not installed by default. Complete the following steps before proceeding:
+
+```bash
+# 0.1 Update system package index
+sudo apt update && sudo apt upgrade -y
+
+# 0.2 Install Python3, pip, and git (Ansible runtime dependencies)
+sudo apt install -y python3 python3-pip git
+
+# 0.3 Install Ansible via pip (recommended: newer versions, decoupled from system packages)
+pip3 install --user ansible
+
+# 0.4 Make pip --user binaries available in your shell
+# Add the following line to ~/.bashrc for persistence
+export PATH="$HOME/.local/bin:$PATH"
+source ~/.bashrc
+
+# 0.5 Verify the installation
+ansible --version   # Should print ansible [core 2.x.x]
+```
+
+> **💡 Note:** On Ubuntu ≥ 24.04, PEP 668 prevents global pip installs.
+> Use `sudo apt install -y ansible` or `pipx install ansible` instead.
+
+Once `ansible --version` prints successfully, proceed to the next step.
+
+---
+
 ### 1. Prerequisites / Base Tools
 Run the Ansible playbook once per new WSL environment to install Docker, Kubectl, Kind, Helm, and Terraform:
 ```bash
